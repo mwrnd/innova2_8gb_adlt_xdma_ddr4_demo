@@ -20,8 +20,6 @@ A test version for the [4GB MNV303212A-ADIT variant is available](https://github
 
 # AXI Addresses
 
-![AXI Addresses](img/xdma_adlt_ddr4_Addresses.png)
-
 | Block                      | Address (Hex) | Size  |
 | -------------------------- |:-------------:| :---: |
 | `M_AXI` `BRAM_CTRL_0`      |  0x80000000   |   2M  |
@@ -33,6 +31,8 @@ A test version for the [4GB MNV303212A-ADIT variant is available](https://github
 | `M_AXI` `DDR4_CTRL_0`      |  0x70200000   |   1M  |
 | `M_AXI_LITE` `BRAM_CTRL_1` |  0x00080000   |   8K  |
 | `M_AXI_LITE` `GPIO_3`      |  0x00090000   |  64K  |
+
+![AXI Addresses](img/xdma_adlt_ddr4_Addresses.png)
 
 
 
@@ -99,10 +99,10 @@ The FPGA is attached to a PCIe Bridge (`02:08.0`), as are the two Ethernet Contr
 04:00.0 Ethernet controller [0200]: Mellanox Technologies MT27800 Family [ConnectX-5] [15b3:1017]
 04:00.1 Ethernet controller [0200]: Mellanox Technologies MT27800 Family [ConnectX-5] [15b3:1017]
 
--[0000:00]-+-00.0  Intel Corporation Device 3e0f
-           +-1d.0-[01-04]----00.0-[02-04]--+-08.0-[03]----00.0  Xilinx Corporation Device 9038
-           |                               \-10.0-[04]--+-00.0  Mellanox Technologies MT27800 Family [ConnectX-5]
-           |                                            \-00.1  Mellanox Technologies MT27800 Family [ConnectX-5]
+-[0]-+-00.0 Intel Corporation Device 3e0f
+     +-1d.0-[01-04]----00.0-[02-04]--+-08.0-[03]----00.0 Xilinx Corporation Device 9038
+     |                               \-10.0-[04]--+-00.0 Mellanox Technologies MT27800 Family [ConnectX-5]
+     |                                            \-00.1 Mellanox Technologies MT27800 Family [ConnectX-5]
 ```
 
 The current PCIe Link status is useful. Note this is the FPGA to ConnectX-5 PCIe Bridge link.
@@ -121,9 +121,9 @@ sudo lspci -nnvd 10ee:  ;  sudo lspci -nnvvd 10ee: | grep Lnk
 
 ### AXI BRAM Communication
 
-The commands below generate 2MB of random data, then send it to a BRAM in the XCKU15P, then read it back and confirm the data is identical. Note `h2c` is *Host-to-Card* and `c2h` is *Card-to-Host*. From [AXI Addresses](#axi-ddresses) earlier, the BRAM is at `0x80000000`.
+The commands below generate 2MB of random data, then send it to a URAM Block in the XCKU15P, then read it back and confirm the data is identical. Note `h2c` is *Host-to-Card* and `c2h` is *Card-to-Host*. From [AXI Addresses](#axi-addresses) earlier, the BRAM is at `0x80000000`.
 ```Shell
-cd ~/dma_ip_drivers/XDMA/linux-kernel/tools/
+cd dma_ip_drivers/XDMA/linux-kernel/tools/
 dd if=/dev/urandom bs=256 count=8192 of=TEST
 sudo ./dma_to_device   --verbose --device /dev/xdma0_h2c_0 --address 0x80000000 --size 2097152  -f    TEST
 sudo ./dma_from_device --verbose --device /dev/xdma0_c2h_0 --address 0x80000000 --size 2097152 --file RECV
@@ -145,6 +145,7 @@ The design includes an [AXI GPIO](https://docs.xilinx.com/v/u/3.0-English/ds744_
 
 The LED GPIO Block is connected to the **M_AXI_LITE** port so access to it is via 32-bit=1-word reads and writes to the **/dev/xdma0_user** file using the `reg_rw` utility from `dma_ip_drivers`. The commands below should turn on then turn off the *D18* LED in between reads of the GPIO register.
 ```Shell
+cd dma_ip_drivers/XDMA/linux-kernel/tools/
 sudo ./reg_rw /dev/xdma0_user 0x90000 w
 sudo ./reg_rw /dev/xdma0_user 0x90000 w 0x0001
 sudo ./reg_rw /dev/xdma0_user 0x90000 w
@@ -184,7 +185,7 @@ If checksums do not match, [`vbindiff DATA RECV`](https://manpages.ubuntu.com/ma
 
 Note that data is loaded from your system drive into memory then sent to the Innova-2 DDR4 over PCIe DMA. Likewise it is loaded from the Innova-2's DDR4 into system RAM, then onto disk. The wall time of these functions can therefore be significantly longer than the DMA Memory-to-Memory over PCIe transfer time.
 ```Shell
-cd ~/dma_ip_drivers/XDMA/linux-kernel/tools/
+cd dma_ip_drivers/XDMA/linux-kernel/tools/
 free -m
 dd if=/dev/urandom bs=8192 count=65536 of=DATA
 printf "%ld\n" 0x200000000
@@ -215,7 +216,7 @@ md5sum DATA RECV
 
 Test the first `1GB = 1073741824 bytes` of the DDR4 memory space using a binary all-zeros file.
 ```
-cd ~/dma_ip_drivers/XDMA/linux-kernel/tools/
+cd dma_ip_drivers/XDMA/linux-kernel/tools/
 dd if=/dev/zero of=DATA bs=8192 count=131072
 printf "%ld\n" 0x200000000
 sudo dd if=DATA of=/dev/xdma0_h2c_0 count=1 bs=1073741824 seek=8589934592 oflag=seek_bytes
@@ -227,7 +228,7 @@ md5sum DATA RECV
 
 Test the first `1GB = 1073741824 bytes` of the DDR4 memory space using a binary [all-ones file](https://stackoverflow.com/questions/10905062/how-do-i-get-an-equivalent-of-dev-one-in-linux).
 ```
-cd ~/dma_ip_drivers/XDMA/linux-kernel/tools/
+cd dma_ip_drivers/XDMA/linux-kernel/tools/
 tr '\0' '\377' </dev/zero | dd of=DATA bs=8192 count=131072 iflag=fullblock
 printf "%ld\n" 0x200000000
 sudo dd if=DATA of=/dev/xdma0_h2c_0 count=1 bs=1073741824 seek=8589934592 oflag=seek_bytes
@@ -242,7 +243,7 @@ md5sum DATA RECV
 
 #### DDR4 Communication Error
 
-If you attempt to send data to the DDR4 address but get `write file: Unknown error 512` it means DDR4 did not initialize properly or the AXI bus has encountered an error and stalled. Proceed to the [Innova-2 DDR4 Troubleshooting](https://github.com/mwrnd/innova2_ddr4_troubleshooting) project.
+If you attempt to send data to the DDR4 address but get `write file: Unknown error 512` it means DDR4 did not initialize properly or the AXI bus has encountered an error and stalled. Reboot and try again. If that fails, proceed to the [Innova-2 DDR4 Troubleshooting](https://github.com/mwrnd/innova2_ddr4_troubleshooting) project.
 ```Shell
 sudo ./dma_to_device --verbose --device /dev/xdma0_h2c_0 --address 0x0 --size 8192 -f TEST
 ```
@@ -299,7 +300,7 @@ The Innova-2's XCKU15P is wired for **x8** PCIe at *PCIe Block Location:* **X0Y2
 
 ![XDMA Basic Customizations](img/XDMA_Customization_Options-Basic.png)
 
-For this design I set the PCIe *Base Class* to **Memory Controller** and the *Sub-Class* to **RAM**.
+For this design I set the PCIe *Base Class* to **Memory Controller** and the *Sub-Class* to **Other**.
 
 ![XDMA PCIe ID Customizations](img/XDMA_Customization_Options-PCIe_ID.png)
 
