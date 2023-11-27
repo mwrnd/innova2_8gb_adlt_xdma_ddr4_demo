@@ -61,7 +61,7 @@ A test version for the [4GB MNV303212A-ADIT variant is available](https://github
 Refer to the `innova2_flex_xcku15p_notes` project's instructions on [Loading a User Image](https://github.com/mwrnd/innova2_flex_xcku15p_notes/#loading-a-user-image). Binary Memory Configuration Bitstream Files are included in this project's [Releases](https://github.com/mwrnd/innova2_8gb_adlt_xdma_ddr4_demo/releases).
 
 ```
-wget https://github.com/mwrnd/innova2_8gb_adlt_xdma_ddr4_demo/releases/download/v0.1-alpha/innova2_8gb_adlt_xdma_ddr4_demo_bin.zip
+wget https://github.com/mwrnd/innova2_8gb_adlt_xdma_ddr4_demo/releases/download/v0.1/innova2_8gb_adlt_xdma_ddr4_demo_bin.zip
 unzip innova2_8gb_adlt_xdma_ddr4_demo_bin.zip
 md5sum *bin
 echo 6dd45e970a06a2037173f36fbc1a230f should be md5sum of innova2_8gb_adlt_xdma_ddr4_demo_primary.bin
