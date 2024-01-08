@@ -338,7 +338,7 @@ The DDR4 Memory Part is selected as `MT40A1G16WBU-083E` which is compatible with
 
 ![DDR4 Memory Part](img/DDR4_Settings-Memory_Part.png)
 
-The DDR4 is configured for a Memory Speed of **833**ps = 1200MHz = 2400 MT/s Transfer Rate. The DDR4 reference clock is **9996**ps = 100.04MHz. [CAS Latency](https://en.wikipedia.org/wiki/CAS_latency) is set to **16** and CAS Write Latency is set to **12**.
+The DDR4 is configured for a Memory Speed of **833**ps -> 1200MHz -> 2400 MT/s Transfer Rate. The DDR4 reference clock is **9996**ps -> 100.04MHz. [CAS Latency](https://en.wikipedia.org/wiki/CAS_latency) is set to **16** and CAS Write Latency is set to **12**.
 
 ![DDR4 Basic Configuration](img/DDR4_Settings-Basic.png)
 
