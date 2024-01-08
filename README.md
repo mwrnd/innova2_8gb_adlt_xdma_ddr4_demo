@@ -1,12 +1,12 @@
 # Innova-2 Flex XCKU15P XDMA PCIe DDR4 GPIO Demo
 
-This is a [Vivado 2023.1](https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vivado-design-tools/2023-1.html) starter project for the [XCKU15P FPGA](https://www.xilinx.com/products/silicon-devices/fpga/kintex-ultrascale-plus.html) on the [Innova-2 Flex SmartNIC MNV303212A-ADLT](https://www.nvidia.com/en-us/networking/ethernet/innova-2-flex/). It is a superset of the [`innova2_xdma_demo`](https://github.com/mwrnd/innova2_xdma_demo) project that implements DDR4 in addition to a PCIe XDMA interface to BRAM and a GPIO.
+This is a [Vivado 2023.2](https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vivado-design-tools/2023-2.html) starter project for the [XCKU15P FPGA](https://www.xilinx.com/products/silicon-devices/fpga/kintex-ultrascale-plus.html) on the [Innova-2 Flex SmartNIC MNV303212A-ADLT](https://www.nvidia.com/en-us/networking/ethernet/innova-2-flex/). It is a superset of the [`innova2_xdma_demo`](https://github.com/mwrnd/innova2_xdma_demo) project that adds DDR4.
 
 Refer to the [innova2_flex_xcku15p_notes](https://github.com/mwrnd/innova2_flex_xcku15p_notes/) project for instructions on setting up an Innova-2 system with all drivers including [Xilinx's PCIe XDMA Drivers](https://github.com/Xilinx/dma_ip_drivers).
 
 Refer to [this tutorial](https://github.com/mwrnd/notes/tree/main/Vivado_XDMA_DDR4_Tutorial) for detailed instructions on generating a similar project from scratch.
 
-A test version for the [4GB MNV303212A-ADIT variant is available](https://github.com/mwrnd/innova2_ddr4_troubleshooting/tree/main/test_adit_mt40a512m16).
+There is also a [version for the 4GB `MNV303212A-ADIT`/`MNV303212A-ADAT` variant available](https://github.com/mwrnd/innova2_4gb_adit_xdma_ddr4_demo).
 
 
 
@@ -32,7 +32,7 @@ A test version for the [4GB MNV303212A-ADIT variant is available](https://github
 | `M_AXI_LITE` `BRAM_CTRL_1` |  0x00080000   |   8K  |
 | `M_AXI_LITE` `GPIO_3`      |  0x00090000   |  64K  |
 
-![AXI Addresses](img/xdma_adlt_ddr4_Addresses.png)
+![AXI Addresses](img/xdma_adlt_ddr4_demo_Addresses.png)
 
 
 
@@ -58,14 +58,15 @@ A test version for the [4GB MNV303212A-ADIT variant is available](https://github
 
 ## Program the Design into the XCKU15P Configuration Memory
 
-Refer to the `innova2_flex_xcku15p_notes` project's instructions on [Loading a User Image](https://github.com/mwrnd/innova2_flex_xcku15p_notes/#loading-a-user-image). Binary Memory Configuration Bitstream Files are included in this project's [Releases](https://github.com/mwrnd/innova2_8gb_adlt_xdma_ddr4_demo/releases).
+Refer to the [`innova2_flex_xcku15p_notes`](https://github.com/mwrnd/innova2_flex_xcku15p_notes) project's instructions on [Loading a User Image](https://github.com/mwrnd/innova2_flex_xcku15p_notes/#loading-a-user-image). Binary Memory Configuration Bitstream Files are included in this project's [Releases](https://github.com/mwrnd/innova2_8gb_adlt_xdma_ddr4_demo/releases).
 
 ```
-wget https://github.com/mwrnd/innova2_8gb_adlt_xdma_ddr4_demo/releases/download/v0.1/innova2_8gb_adlt_xdma_ddr4_demo_bin.zip
-unzip innova2_8gb_adlt_xdma_ddr4_demo_bin.zip
+wget https://github.com/mwrnd/innova2_8gb_adlt_xdma_ddr4_demo/releases/download/v0.2/innova2_8gb_adlt_xdma_ddr4_demo_bitstream.zip
+unzip innova2_8gb_adlt_xdma_ddr4_demo_bitstream.zip
 md5sum *bin
-echo 6dd45e970a06a2037173f36fbc1a230f should be md5sum of innova2_8gb_adlt_xdma_ddr4_demo_primary.bin
-echo 85417484e61cbd1fb55ec03ef18a8317 should be md5sum of innova2_8gb_adlt_xdma_ddr4_demo_secondary.bin
+echo fd2fe52b344f46725ca083e4a108b6f8 should be md5sum of innova2_8gb_adlt_xdma_ddr4_demo_primary.bin
+echo cfe2edd5c91cb6d7f41d00969b0041be should be md5sum of innova2_8gb_adlt_xdma_ddr4_demo_secondary.bin
+echo 90055e5b1a28b98dea2f6703b68040fd should be md5sum of xdma_wrapper.bit
 ```
 
 
@@ -121,7 +122,9 @@ sudo lspci -nnvd 10ee:  ;  sudo lspci -nnvvd 10ee: | grep Lnk
 
 ### AXI BRAM Communication
 
-The commands below generate 2MB of random data, then send it to a URAM Block in the XCKU15P, then read it back and confirm the data is identical. Note `h2c` is *Host-to-Card* and `c2h` is *Card-to-Host*. From [AXI Addresses](#axi-addresses) earlier, the BRAM is at `0x80000000`.
+The [XDMA driver from dma_ip_drivers](https://github.com/Xilinx/dma_ip_drivers/tree/master/XDMA/linux-kernel) creates [character device files](https://en.wikipedia.org/wiki/Device_file#Character_devices) for access to an AXI Bus. For DMA transfers to **M_AXI** blocks, `/dev/xdma0_h2c_0` is Write-Only and `/dev/xdma0_c2h_0` is Read-Only. To read from an AXI Block at address `0x12345600` you would read from address `0x12345600` of the `/dev/xdma0_c2h_0` (Card-to-Host) file. To write you would write to the appropriate address of the `/dev/xdma0_h2c_0` (Host-to-Card) file. For single word (32-Bit) register-like reads and writes to **M_AXI_LITE** blocks, `/dev/xdma0_user` is Read-Write.
+
+The commands below generate 2MB of random data, then send it to a URAM Block (`0x80000000`) in the XCKU15P, then read it back and confirm the data is identical.
 ```Shell
 cd dma_ip_drivers/XDMA/linux-kernel/tools/
 dd if=/dev/urandom bs=256 count=8192 of=TEST
@@ -130,7 +133,7 @@ sudo ./dma_from_device --verbose --device /dev/xdma0_c2h_0 --address 0x80000000 
 md5sum TEST RECV
 ```
 
-![XDMA BRAM Test](img/XDMA_Tools_BRAM_Test.jpg)
+![XDMA BRAM Test](img/XDMA_Tools_BRAM_Test.png)
 
 
 
@@ -255,7 +258,15 @@ sudo ./dma_to_device --verbose --device /dev/xdma0_h2c_0 --address 0x0 --size 81
 
 ### Custom Software for Accessing AXI Blocks
 
-[innova2_xdma_ddr4_test.c](innova2_xdma_ddr4_test.c) is a simple program that demonstrates XDMA communication in [C](https://en.wikipedia.org/wiki/C_(programming_language)). It uses [`pread` and `pwrite`](https://manpages.ubuntu.com/manpages/jammy/en/man2/pread.2.html) to communicate with AXI Blocks. [`read` and `write`](https://manpages.ubuntu.com/manpages/jammy/en/man2/read.2.html) plus [`lseek`](https://manpages.ubuntu.com/manpages/jammy/en/man2/lseek.2.html) can also be used.
+[`pread`/`pwrite`](https://manpages.ubuntu.com/manpages/jammy/en/man2/pread.2.html) combine [`lseek`](https://manpages.ubuntu.com/manpages/jammy/en/man2/lseek.2.html) and [`read`/`write`](https://manpages.ubuntu.com/manpages/jammy/en/man2/read.2.html). Note the Linux Kernel has a [write limit](https://manpages.ubuntu.com/manpages/focal/en/man2/write.2.html) of `0x7FFFF000=2147479552` bytes per call.
+```C
+#include <unistd.h>
+
+ssize_t pread(int fd, void *buf, size_t count, off_t offset);
+ssize_t pwrite(int fd, const void *buf, size_t count, off_t offset);
+```
+
+[innova2_xdma_ddr4_test.c](innova2_xdma_ddr4_test.c) is a simple program that demonstrates XDMA communication in [C](https://en.wikipedia.org/wiki/C_(programming_language)) using [`pread` and `pwrite`](https://manpages.ubuntu.com/manpages/jammy/en/man2/pread.2.html) to communicate with AXI Blocks.
 
 ```
 gcc -Wall innova2_xdma_ddr4_test.c -o innova2_xdma_ddr4_test -lm
@@ -269,7 +280,7 @@ sudo ./innova2_xdma_ddr4_test
 
 ## Recreating the Design in Vivado
 
-Run the `source` command from the main Vivado **2023.1** window.
+Run the `source` command from the main Vivado **2023.2** window.
 
 ```
 cd innova2_8gb_adlt_xdma_ddr4_demo
@@ -288,6 +299,19 @@ Once the Bitstream is generated, run *Write Memory Configuration File*, select *
 ![Write Memory Configuration File](img/Vivado_Write_Memory_Configuration_File.png)
 
 Proceed to [Loading a User Image](https://github.com/mwrnd/innova2_flex_xcku15p_notes/#loading-a-user-image)
+
+
+
+
+### Resource Utilization
+
+Design run details:
+
+![Design Run Output](img/xdma_ddr4_demo_Design_Run.png)
+
+Resource Utilization Chart:
+
+![Resource Utilization Chart](img/xdma_adlt_ddr4_demo_Resource_Utilization.png)
 
 
 

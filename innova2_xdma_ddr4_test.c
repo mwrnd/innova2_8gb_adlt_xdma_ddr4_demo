@@ -176,7 +176,7 @@ ssize_t write_to_axi(uint64_t address, size_t bytes, void *buffer)
 
 
 
-void axi_memory_test(uint64_t axi_gpio_addr, uint64_t size_in_bytes)
+void axi_memory_test(uint64_t axi_addr, uint64_t size_in_bytes)
 {
 	float *wrte_data;
 	float *read_data;
@@ -207,7 +207,7 @@ void axi_memory_test(uint64_t axi_gpio_addr, uint64_t size_in_bytes)
 	// Generate Random Data
 
 	// Seed the random number generator with an arbitrary value: an address
-	srandom((unsigned int)((long int)xdma.h2cfilename));
+	srandom((unsigned int)((long int)axi_memory_test));
 
 	// Fill arrays; write (H2C) with random data and read (C2H) with 0s
 	for (uint64_t indx = 0; indx < numfloats ; indx++)
@@ -222,10 +222,10 @@ void axi_memory_test(uint64_t axi_gpio_addr, uint64_t size_in_bytes)
 
 
 	// Write the random data to the FPGA's AXI BRAM
-	rc_w = write_to_axi(axi_gpio_addr, size_in_bytes, wrte_data);
+	rc_w = write_to_axi(axi_addr, size_in_bytes, wrte_data);
 
 	// Read data from the FPGA's AXI BRAM
-	rc_r = read_from_axi(axi_gpio_addr, size_in_bytes, read_data);
+	rc_r = read_from_axi(axi_addr, size_in_bytes, read_data);
 
 
 	// end timing of the transfers
@@ -233,9 +233,9 @@ void axi_memory_test(uint64_t axi_gpio_addr, uint64_t size_in_bytes)
 	ts_end.tv_sec = abs(ts_end.tv_sec - ts_start.tv_sec);
 	ts_end.tv_nsec = abs(ts_end.tv_nsec - ts_start.tv_nsec);
 	printf("Wrote %ld bytes to   %s at address 0x%lX\n",
-		rc_w, xdma.h2cfilename, axi_gpio_addr);
+		rc_w, xdma.h2cfilename, axi_addr);
 	printf("Read  %ld bytes from %s at address 0x%lX\n",
-		rc_r, xdma.c2hfilename, axi_gpio_addr);
+		rc_r, xdma.c2hfilename, axi_addr);
 	printf("Data transfers took %ld.%09ld seconds for %ld floats.\n",
 		ts_end.tv_sec, ts_end.tv_nsec, numfloats);
 	bandwidth = (float)((((double)size_in_bytes) /
@@ -377,8 +377,6 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	printf("\n");
-
 
 
 
@@ -398,7 +396,7 @@ int main(int argc, char **argv)
 	// Toggle LED once a second for 4 seconds
 	// GPIO for LED is at AXI Address 0x90000 which is PCIe address
 	// 0x90000 as XDMA_PCIe_to_AXI_Translation_Offset=0x00000000
-	printf("\nTest GPIO LED:\n");
+	printf("Test GPIO LED:\n");
 	uint64_t addr = 0x90000 - XDMA_PCIe_to_AXI_Translation_Offset;
 	uint32_t write_word = 0;
 	for (int i = 0; i < 5 ; i++)
@@ -422,13 +420,13 @@ int main(int argc, char **argv)
 
 	// -------- Estimate Frequency of non-XDMA Clocks --------------------
 
-	printf("\nCompare clocks against %dMHz XDMA axi_aclk:", XDMA_CLK_MHz);
+	printf("Compare clocks against %dMHz XDMA axi_aclk:", XDMA_CLK_MHz);
 
 	uint8_t delay = 1;
 	estimate_clock_MHz(delay, "sys_clk_100MHz", 0x70100000);
-	estimate_clock_MHz(delay, "emc_clk_150MHz", 0x70110000);
-	estimate_clock_MHz(delay, "uram_clk", 0x70120000);
-	estimate_clock_MHz(delay, "c0_ddr4_ui_clk", 0x70140000);
+	estimate_clock_MHz(delay, "clk_100MHz", 0x70110000);
+	estimate_clock_MHz(delay, "c0_ddr4_ui_clk", 0x70120000);
+	estimate_clock_MHz(delay, "emc_clk_150MHz", 0x70140000);
 
 	printf("\n");
 
