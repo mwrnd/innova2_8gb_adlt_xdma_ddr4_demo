@@ -163,7 +163,7 @@ sudo ./reg_rw /dev/xdma0_user 0x90000 w
 
 ### DDR4 Communication and Throughput
 
-Memory Management prevents data reads from uninitialized memory. DDR4 must first be written to before it can be read from.
+The [DDR4 Controller](https://docs.xilinx.com/v/u/en-US/pg150-ultrascale-memory-ip) prevents data reads from uninitialized memory. DDR4 must first be written before it can be read.
 
 Your system must have enough free memory to test DDR4 DMA transfers. Run `free -m` to determine how much RAM you have available and keep the amount of data to transfer below that. The commands below generate 512MB of random data then transfer it to and from the Innova-2. The address of the DDR4 is `0x200000000` as noted earlier.
 
@@ -176,8 +176,6 @@ sudo dumpe2fs /dev/sda3 | grep "Block size"
 
 ![Determine SSD or Hard Drive Block Size](img/df_dumpe2fs_Determine_Block_Size.png)
 
-Note `128MiB = 134217728 = 0x8000000` which can be generated with `dd` using the `bs=8192 count=16384` options.
-
 To test the full 8GB of memory you can increment the address by the data size enough times that all `8Gib = 8589934592 = 0x200000000` has been tested.
 
 If you have 8GB+ of free memory space, generate 8GB of random data with the `dd` command options `bs=8192 count=1048576` and test the DDR4 in one go.
@@ -188,7 +186,6 @@ If checksums do not match, [`vbindiff DATA RECV`](https://manpages.ubuntu.com/ma
 
 Note that data is loaded from your system drive into memory then sent to the Innova-2 DDR4 over PCIe DMA. Likewise it is loaded from the Innova-2's DDR4 into system RAM, then onto disk. The wall time of these functions can therefore be significantly longer than the DMA Memory-to-Memory over PCIe transfer time.
 ```Shell
-cd dma_ip_drivers/XDMA/linux-kernel/tools/
 free -m
 dd if=/dev/urandom bs=8192 count=65536 of=DATA
 printf "%ld\n" 0x200000000
