@@ -338,15 +338,15 @@ The DDR4 Memory Part is selected as `MT40A1G16WBU-083E` which is compatible with
 
 ![DDR4 Memory Part](img/DDR4_Settings-Memory_Part.png)
 
-The DDR4 is configured for a Memory Speed of **1428**ps = 700MHz = 1400 MT/s Transfer Rate. The DDR4 reference clock is **9996**ps = 100.04MHz.
+The DDR4 is configured for a Memory Speed of **833**ps = 1200MHz = 2400 MT/s Transfer Rate. The DDR4 reference clock is **9996**ps = 100.04MHz. [CAS Latency](https://en.wikipedia.org/wiki/CAS_latency) is set to **16** and CAS Write Latency is set to **12**.
 
 ![DDR4 Basic Configuration](img/DDR4_Settings-Basic.png)
 
-*Data Mask and DBI* is set to **NO DM DBI WR RD** which automatically enables ECC on a 72-Bit interface.
+*Data Mask and DBI* is set to **NO DM NO DBI** which automatically enables ECC on a 72-Bit interface.
 
 ![When is ECC Enabled](img/DDR4_72-Bit_When_Is_ECC_Enabled.png)
 
-The *Arbitration Scheme* is set to **Round Robin** under AXI Options.
+The *Arbitration Scheme* is set to **RD PRI REG** under AXI Options.
 
 ![DDR4 AXI Configuration](img/DDR4_Customization_Options-AXI_Options.png)
 
