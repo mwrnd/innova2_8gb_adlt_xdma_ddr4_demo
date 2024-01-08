@@ -291,7 +291,7 @@ Click on *Generate Bitstream*.
 
 ![Generate Bitstream](img/Vivado_Generate_Bitstream.png)
 
-Once the Bitstream is generated, run *Write Memory Configuration File*, select *bin*, *mt25qu512_x1_x2_x4_x8*, *SPIx8*, *Load bitstream files*, and a location and name for the output binary files. The bitstream will end up in the `innova2_xdma_demo/innova2_xdma_demo.runs/impl_1` directory as `xdma_wrapper.bit`. Vivado will add the `_primary.bin` and `_secondary.bin` extensions as the Innova-2 uses dual MT25QU512 FLASH ICs in x8 for high speed programming.
+Once the Bitstream is generated, run **Write Memory Configuration File**, select **bin**, **mt25qu512_x1_x2_x4_x8**, **SPIx8**, **Load bitstream files**, and a location and name for the output binary files. The bitstream will end up in the `innova2_8gb_adlt_xdma_ddr4_demo/innova2_8gb_adlt_xdma_ddr4_demo.runs/impl_1` directory as `xdma_wrapper.bit`. Vivado will add the `_primary.bin` and `_secondary.bin` extensions as the Innova-2 uses dual MT25QU512 FLASH ICs in x8 for high speed programming.
 
 ![Write Memory Configuration File](img/Vivado_Write_Memory_Configuration_File.png)
 
